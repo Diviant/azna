@@ -27,6 +27,18 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    
+    // Simulate API call and save to local storage for Admin to see
+    const newBooking = {
+      id: Date.now().toString(),
+      ...formData,
+      status: 'PENDING',
+      clientName: 'Анонимный Клиент' // In TMA you'd get this from Telegram.WebApp.initDataUnsafe.user
+    };
+
+    const existing = JSON.parse(localStorage.getItem('azna_bookings') || '[]');
+    localStorage.setItem('azna_bookings', JSON.stringify([newBooking, ...existing]));
+
     setTimeout(() => {
       setLoading(false);
       setStep(4);
@@ -44,7 +56,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
   if (step === 4) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] p-8 text-center animate-in zoom-in-95 duration-700">
-        <div className="w-28 h-28 bg-gradient-to-br from-blue-600 to-red-600 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-[0_20px_50px_rgba(220,38,38,0.4)] relative overflow-hidden group">
+        <div className="w-28 h-28 bg-gradient-to-br from-purple-600 to-pink-600 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-[0_20px_50px_rgba(168,85,247,0.4)] relative overflow-hidden group">
           <div className="absolute inset-0 bg-white/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <div className="absolute inset-2 border-2 border-white/20 rounded-[2rem]"></div>
           <CheckCircle2 size={56} className="text-white relative z-10" />
@@ -71,7 +83,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
           <span className="text-[10px] font-black text-white/30 tracking-[0.3em]">STAGE {step}/3</span>
         </div>
         <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-          <div className={`h-full bg-gradient-to-r from-blue-600 to-red-600 transition-all duration-700 ease-out`} style={{ width: `${(step/3)*100}%` }}></div>
+          <div className={`h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-700 ease-out`} style={{ width: `${(step/3)*100}%` }}></div>
         </div>
       </div>
 
@@ -86,7 +98,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
                   onClick={() => setFormData({...formData, style: s})}
                   className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest border transition-all ${
                     formData.style === s 
-                      ? 'bg-red-600 text-white border-red-600 shadow-[0_10px_20px_rgba(220,38,38,0.3)]' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-[0_10px_20px_rgba(168,85,247,0.3)]' 
                       : 'glass-panel text-white/40 border-white/10 hover:border-white/30'
                   }`}
                 >
@@ -105,7 +117,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
                   onClick={() => setFormData({...formData, size: s})}
                   className={`w-full py-5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest border transition-all px-8 flex justify-between items-center ${
                     formData.size === s 
-                      ? 'bg-red-600 text-white border-red-600' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent' 
                       : 'glass-panel text-white/40 border-white/10 hover:border-white/30'
                   }`}
                 >
@@ -127,7 +139,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
               <select 
                 value={formData.bodyArea}
                 onChange={(e) => setFormData({...formData, bodyArea: e.target.value})}
-                className="w-full glass-panel border-white/10 rounded-[1.5rem] py-6 px-8 text-white font-black uppercase tracking-widest appearance-none focus:outline-none focus:ring-1 focus:ring-red-600 transition-all group-hover:border-white/30"
+                className="w-full glass-panel border-white/10 rounded-[1.5rem] py-6 px-8 text-white font-black uppercase tracking-widest appearance-none focus:outline-none focus:ring-1 focus:ring-purple-600 transition-all group-hover:border-white/30"
               >
                 {BODY_AREAS.map(a => <option key={a} value={a} className="bg-neutral-900">{a}</option>)}
               </select>
@@ -142,22 +154,22 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
                 value={formData.comment}
                 onChange={(e) => setFormData({...formData, comment: e.target.value})}
                 placeholder="Расскажите о концепте детали, масштабе или истории..."
-                className="w-full glass-panel border-white/10 rounded-[2rem] py-8 px-8 text-white h-48 text-sm focus:outline-none focus:ring-1 focus:ring-red-600 resize-none font-medium placeholder:text-white/10 group-hover:border-white/30"
+                className="w-full glass-panel border-white/10 rounded-[2rem] py-8 px-8 text-white h-48 text-sm focus:outline-none focus:ring-1 focus:ring-purple-600 resize-none font-medium placeholder:text-white/10 group-hover:border-white/30"
               />
               <button 
                 onClick={askAI}
                 disabled={!formData.comment || loading}
-                className="absolute bottom-6 right-6 flex items-center gap-2 text-[9px] font-black text-red-500 uppercase tracking-widest disabled:opacity-30 group"
+                className="absolute bottom-6 right-6 flex items-center gap-2 text-[9px] font-black text-pink-500 uppercase tracking-widest disabled:opacity-30 group"
               >
                 {loading ? <Loader2 className="animate-spin" size={12} /> : <Wand2 size={12} className="group-hover:rotate-45 transition-transform" />}
                 M-Advice AI
               </button>
             </div>
             {aiAdvice && (
-              <div className="mt-8 glass-panel p-8 rounded-[2rem] border-red-600/20 text-xs italic text-red-100 leading-relaxed shadow-inner hover:border-red-600/40">
+              <div className="mt-8 glass-panel p-8 rounded-[2rem] border-purple-600/20 text-xs italic text-purple-100 leading-relaxed shadow-inner hover:border-purple-600/40">
                 <div className="flex items-center gap-2 mb-3">
-                  <Info size={14} className="text-red-600" />
-                  <span className="font-black not-italic uppercase tracking-widest text-red-500">M-Performance Advice:</span>
+                  <Info size={14} className="text-purple-500" />
+                  <span className="font-black not-italic uppercase tracking-widest text-purple-500">M-Performance Advice:</span>
                 </div>
                 {aiAdvice}
               </div>
@@ -178,7 +190,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({...formData, date: e.target.value})}
-              className="w-full glass-panel border-white/10 rounded-[1.5rem] py-6 px-8 text-white font-black focus:outline-none focus:ring-1 focus:ring-red-600 transition-all [color-scheme:dark] hover:border-white/30"
+              className="w-full glass-panel border-white/10 rounded-[1.5rem] py-6 px-8 text-white font-black focus:outline-none focus:ring-1 focus:ring-purple-600 transition-all [color-scheme:dark] hover:border-white/30"
             />
           </div>
 
@@ -191,7 +203,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
                   onClick={() => setFormData({...formData, time: t})}
                   className={`py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest border transition-all ${
                     formData.time === t 
-                      ? 'bg-red-600 text-white border-red-600 shadow-[0_10px_15px_rgba(220,38,38,0.2)]' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-[0_10px_15px_rgba(168,85,247,0.2)]' 
                       : 'glass-panel text-white/40 border-white/10 hover:border-white/30'
                   }`}
                 >
@@ -202,7 +214,7 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
           </div>
 
           <div className="glass-panel p-8 rounded-[2.5rem] border-white/5 space-y-4 shadow-inner relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-purple-600 to-transparent opacity-30 group-hover:opacity-100 transition-opacity"></div>
             <div className="flex justify-between items-center text-[10px] uppercase font-black tracking-widest">
               <span className="text-white/30">Configuration Style</span>
               <span className="text-white">{formData.style}</span>
@@ -213,14 +225,14 @@ const BookingView: React.FC<BookingViewProps> = ({ onSuccess }) => {
             </div>
             <div className="flex justify-between items-center text-[10px] uppercase font-black tracking-widest">
               <span className="text-white/30">Status</span>
-              <span className="text-red-600 animate-pulse">Waiting Confirmation</span>
+              <span className="text-pink-500 animate-pulse">Waiting Confirmation</span>
             </div>
           </div>
 
           <button 
             onClick={handleSubmit} 
             disabled={!formData.date || loading}
-            className="w-full bg-red-600 text-white font-black py-7 rounded-[2.5rem] text-xl uppercase tracking-widest flex items-center justify-center gap-4 disabled:opacity-30 shadow-[0_20px_40px_rgba(220,38,38,0.3)] hover:scale-[1.02] active:scale-95 transition-all"
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black py-7 rounded-[2.5rem] text-xl uppercase tracking-widest flex items-center justify-center gap-4 disabled:opacity-30 shadow-[0_20px_40px_rgba(168,85,247,0.3)] hover:scale-[1.02] active:scale-95 transition-all border-none"
           >
             {loading ? <Loader2 className="animate-spin" size={24} /> : 'ЗАБРОНИРОВАТЬ'}
           </button>

@@ -7,18 +7,24 @@ import { TattooStyle } from '../types';
 const PortfolioView: React.FC = () => {
   const [filter, setFilter] = useState<TattooStyle | 'Все'>('Все');
   const [scrollY, setScrollY] = useState(0);
+  const [combinedData, setCombinedData] = useState(PORTFOLIO_DATA);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Load custom works from admin
+    const customWorks = JSON.parse(localStorage.getItem('azna_portfolio') || '[]');
+    setCombinedData([...customWorks, ...PORTFOLIO_DATA]);
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const filteredItems = filter === 'Все' 
-    ? PORTFOLIO_DATA 
-    : PORTFOLIO_DATA.filter(item => item.style === filter);
+    ? combinedData 
+    : combinedData.filter(item => item.style === filter);
 
   const styles = ['Все', ...Object.values(TattooStyle)];
 
@@ -26,7 +32,7 @@ const PortfolioView: React.FC = () => {
     <div className="p-6 animate-in slide-in-from-right duration-500">
       <div className="flex flex-col gap-2 mb-10 px-2">
         <h2 className="text-4xl font-black italic tracking-tighter uppercase text-white">Экспозиция</h2>
-        <div className="h-1.5 w-24 bg-gradient-to-r from-blue-600 via-blue-400 to-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></div>
+        <div className="h-1.5 w-24 bg-gradient-to-r from-purple-600 via-purple-400 to-pink-600 rounded-full shadow-[0_0_15px_rgba(236,72,153,0.5)]"></div>
         <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em] mt-2">Лучшие работы студии AZNA</p>
       </div>
       
@@ -38,7 +44,7 @@ const PortfolioView: React.FC = () => {
             onClick={() => setFilter(style as any)}
             className={`whitespace-nowrap px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
               filter === style 
-                ? 'bg-red-600 text-white border-red-600 shadow-[0_10px_20px_rgba(220,38,38,0.4)]' 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-[0_10px_20px_rgba(168,85,247,0.4)]' 
                 : 'glass-panel text-white/40 border-white/10 hover:border-white/30'
             }`}
           >
@@ -63,7 +69,7 @@ const PortfolioView: React.FC = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 transition-opacity group-hover:opacity-70"></div>
               <div className="absolute bottom-10 left-10 right-10 transform transition-transform duration-500 group-hover:translate-y-[-5px]">
-                <span className="text-[10px] font-black text-red-500 uppercase tracking-[0.4em] mb-2 block">Performance Art</span>
+                <span className="text-[10px] font-black m-gradient-text uppercase tracking-[0.4em] mb-2 block">Performance Art</span>
                 <p className="text-2xl font-bold text-white italic tracking-tighter uppercase drop-shadow-lg">{item.description}</p>
               </div>
             </div>
@@ -73,7 +79,7 @@ const PortfolioView: React.FC = () => {
                 <span className="text-sm font-bold uppercase text-white tracking-widest">{item.style}</span>
               </div>
               <div className="flex gap-0.5 group-hover:scale-110 transition-transform">
-                 {[...Array(5)].map((_, i) => <Star key={i} size={10} fill="#ff0000" className="text-red-600" />)}
+                 {[...Array(5)].map((_, i) => <Star key={i} size={10} fill="#ec4899" className="text-pink-500" />)}
               </div>
             </div>
           </div>

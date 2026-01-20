@@ -15,6 +15,16 @@ export interface PortfolioItem {
   description: string;
 }
 
+export interface EducationCourse {
+  id: string;
+  title: string;
+  duration: string;
+  price: string;
+  description: string;
+  features: string[];
+  level: 'Base' | 'Pro' | 'Elite';
+}
+
 export interface Review {
   id: string;
   author: string;

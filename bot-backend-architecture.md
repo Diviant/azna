@@ -1,90 +1,52 @@
 
-# InkFlow Backend & Bot Architecture
+# AZNA PERFORMANCE: Full-Stack Architecture
 
-To complement the Mini App, you need a Node.js backend to handle database storage, Telegram Bot interactions, and scheduled reminders.
+## 1. API Endpoints (Node.js/Express)
 
-## 1. Stack Recommendation
-- **Backend**: Node.js with `grammy` (highly performant Telegram bot framework).
-- **Database**: PostgreSQL with `Prisma` ORM.
-- **Scheduling**: `node-cron` or `bullmq` (if using Redis).
-- **Hosting**: Heroku, Railway, or a VPS (DigitalOcean).
+### Client API
+- `POST /api/users/sync`: Регистрация/обновление данных пользователя из Telegram.
+- `GET /api/portfolio`: Получение списка работ (совмещение статики и БД).
+- `POST /api/bookings`: Создание новой заявки.
+- `GET /api/education`: Список актуальных курсов.
 
-## 2. Database Schema (Prisma Example)
-```prisma
-model User {
-  id         Int       @id @default(autoincrement())
-  telegramId String    @unique
-  username   String?
-  chatId     String    // Essential for sending reminders
-  bookings   Booking[]
-}
+### Admin API (Protected by M-Code/JWT)
+- `GET /api/admin/bookings`: Список всех заявок для CRM.
+- `PATCH /api/admin/bookings/:id`: Изменение статуса (Confirm/Reject).
+- `POST /api/admin/portfolio`: Загрузка новой работы.
+- `DELETE /api/admin/portfolio/:id`: Удаление работы.
+- `PUT /api/admin/education`: Редактирование цен/программ обучения.
 
-model Booking {
-  id         String   @id @default(cuid())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
-  style      String
-  bodyArea   String
-  dateTime   DateTime
-  status     String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
-  notified24 Boolean  @default(false)
-  notified3  Boolean  @default(false)
-}
-```
+## 2. Integration Logic
 
-## 3. Bot Logic (GrammY)
-```typescript
-import { Bot } from "grammy";
+### Когда клиент бронирует (BookingView.tsx -> API):
+1. Запись падает в таблицу `bookings`.
+2. Бот мгновенно отправляет сообщение Мастеру (тебе): 
+   *"⚡️ НОВАЯ ЗАЯВКА: Реализм, Рукав, 24.10 в 14:00. Клиент: @username"*
+3. Бот отправляет клиенту: *"Принято! Мастер проверит график и подтвердит запись."*
 
-const bot = new Bot(process.env.BOT_TOKEN);
+### Когда админ подтверждает (AdminView.tsx -> API):
+1. Статус меняется на `CONFIRMED`.
+2. Бот пишет клиенту: *"🔥 Мастер подтвердил твою запись! Ждем тебя 24.10 в 14:00. Локация: Уфа, Чернышевского 88."*
 
-// Save user info and chat ID
-bot.command("start", async (ctx) => {
-  await db.user.upsert({
-    where: { telegramId: ctx.from.id.toString() },
-    update: { chatId: ctx.chat.id.toString() },
-    create: { 
-      telegramId: ctx.from.id.toString(),
-      chatId: ctx.chat.id.toString(),
-      username: ctx.from.username 
-    }
-  });
-  
-  await ctx.reply("Welcome to InkFlow! 🎨\n\nYour chat is now linked. You will receive notifications about your tattoo sessions here.", {
-    reply_markup: {
-      inline_keyboard: [[{ text: "Open Mini App", web_app: { url: "https://your-app.url" } }]]
-    }
-  });
-});
-```
+## 3. Deployment Flow (Vercel + Railway)
 
-## 4. Reminder Logic (Cron Job)
-```typescript
-import cron from 'node-cron';
+1. **Frontend**: Деплоится на Vercel (подхватывает `vercel.json`).
+2. **Backend**: Рекомендую **Railway.app** — там можно поднять Node.js + PostgreSQL в один клик.
+3. **Env Variables**:
+   - `DATABASE_URL`: Строка подключения к базе.
+   - `BOT_TOKEN`: От BotFather.
+   - `ADMIN_SECRET`: Твой пин-код для API.
 
-// Run every hour
-cron.schedule('0 * * * *', async () => {
-  const now = new Date();
-  
-  // 1. Find sessions in 24 hours
-  const target24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const bookings24 = await db.booking.findMany({
-    where: { dateTime: { lte: target24h }, notified24: false, status: 'CONFIRMED' },
-    include: { user: true }
-  });
-
-  for (const b of bookings24) {
-    try {
-      await bot.api.sendMessage(b.user.chatId, `Reminder: Your tattoo session is tomorrow at ${format(b.dateTime, 'HH:mm')}! See you there.`);
-      await db.booking.update({ where: { id: b.id }, data: { notified24: true } });
-    } catch (e) { console.error("User blocked bot", b.user.chatId); }
+## 4. SQL Functions for Performance
+Для автоматических напоминаний используй `pg-boss` или простую функцию в Node.js:
+```javascript
+// Напоминалка за 24 часа
+const notifyUsers = async () => {
+  const tomorrow = getTomorrowDate();
+  const bookings = await db.query('SELECT * FROM bookings WHERE appointment_date = $1 AND notified_24h = false', [tomorrow]);
+  for (const b of bookings) {
+    await bot.api.sendMessage(b.chatId, "⚠️ Напоминание: Завтра твой сеанс тюнинга в AZNA!");
+    await db.query('UPDATE bookings SET notified_24h = true WHERE id = $1', [b.id]);
   }
-
-  // 2. Similar logic for 3-hour reminders...
-});
+}
 ```
-
-## 5. Security Checklist
-- Validate `Telegram WebApp initData` on the backend to ensure requests are actually from the Telegram Mini App user.
-- Use environment variables for all secrets.
-- Enable HTTPS (required for Telegram Mini Apps).

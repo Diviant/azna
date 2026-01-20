@@ -1,5 +1,5 @@
 
-import { TattooStyle, PortfolioItem, MasterInfo, Review } from './types';
+import { TattooStyle, PortfolioItem, MasterInfo, Review, EducationCourse } from './types';
 
 export const MASTER_INFO: MasterInfo = {
   name: "AZNA",
@@ -10,6 +10,36 @@ export const MASTER_INFO: MasterInfo = {
 };
 
 export const TELEGRAM_CHANNEL = "https://t.me/AZNATATTOO";
+
+export const EDUCATION_COURSES: EducationCourse[] = [
+  {
+    id: '1',
+    title: "M-PERFORMANCE BASE",
+    duration: "2 недели",
+    price: "45.000 ₽",
+    level: 'Base',
+    description: "Фундаментальный курс для новичков. Постановка руки, стерильность и контур.",
+    features: ["Основы анатомии", "Работа с оборудованием", "Практика на латексе", "Первая модель"]
+  },
+  {
+    id: '2',
+    title: "REALISM STAGE 2",
+    duration: "10 дней",
+    price: "75.000 ₽",
+    level: 'Pro',
+    description: "Для мастеров с опытом. Тени, градиенты и фотореализм.",
+    features: ["Портретное сходство", "Мягкие тени", "Колористика", "Сложные перекрытия"]
+  },
+  {
+    id: '3',
+    title: "PRIVATE INTENSIVE",
+    duration: "3 дня",
+    price: "120.000 ₽",
+    level: 'Elite',
+    description: "Индивидуальный коучинг. Весь мой опыт за 8 лет в сжатом формате.",
+    features: ["Тет-а-тет с AZNA", "Разбор твоих ошибок", "Секреты продвижения", "Диплом Academy"]
+  }
+];
 
 export const PORTFOLIO_DATA: PortfolioItem[] = [
   {
